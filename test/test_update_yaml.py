@@ -23,10 +23,8 @@ class TestUpdateConfigService(TestCase):
         self._update_config_service = ucs.UpdateConfigService('127.0.0.1')
         self._zk = KazooClient('127.0.0.1')
         self._zk.start()
-
         self._context = 'staging'
         self._path = self._update_config_service.get_path(self._context)
-        # self._create_path()
 
     def tearDown(self):
         self._zk.stop()
@@ -71,18 +69,3 @@ class TestUpdateConfigService(TestCase):
         update_config_service = UService('127.0.0.1')
         update_config_service.update()
 
-    def _create_path(self, path):
-        if not self._zk.exists(path):
-            self._zk.create(path)
-
-    def _delete_path(self,path=None):
-        if path is None:
-            path = self._path
-        if self._zk.exists(path):
-            self._zk.delete(path, recursive=True)
-
-    def _create_empty_path(self, path=None):
-        if path is None:
-            path = self._path
-        self._delete_path(path)
-        self._create_path(path)
