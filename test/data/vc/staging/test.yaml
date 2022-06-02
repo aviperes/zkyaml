@@ -1,0 +1,4 @@
+x: 1
+y: 2
+entry_from_staging: 1
+should_be_one_in_staging: 1
