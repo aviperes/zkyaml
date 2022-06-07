@@ -9,7 +9,9 @@ from kazoo.client import KazooClient
 import zkyaml.update.update_service_base as usb
 
 from zkyaml.common import logger
-from zkyaml.common.env_variables import default_base_path, default_repo_path, default_repo_files_path
+from zkyaml.common.env_variables import default_base_path, default_repo_path, default_repo_files_path, \
+    default_single_files_path
+
 
 
 class UpdateConfigService(usb.UpdateGitServiceBase):
@@ -21,6 +23,8 @@ class UpdateConfigService(usb.UpdateGitServiceBase):
         self._repo_path = default_repo_path
         self._repo_files_path = default_repo_files_path
         self._full_base_path = os.path.join(self._repo_path, default_repo_files_path)
+        # self._single_yaml_path = default_single_files_path
+        # self._full_single_yaml_path = os.path.join(self._repo_path, self._single_yaml_path)
 
     def update_config(self):
         self.update()
@@ -34,8 +38,9 @@ class UpdateConfigService(usb.UpdateGitServiceBase):
         return 'master'
 
     # Implements abstractmethod
-    def _update(self):
-        pull_output = self._resolve_pull_output()
+    def _update(self, pull_output=None):
+        if pull_output is None:
+            pull_output = self._resolve_pull_output()
         context_files = self._collect_files_and_context(pull_output)
         if not context_files:
             self._logger.warning('changes were not in context files')
@@ -67,7 +72,7 @@ class UpdateConfigService(usb.UpdateGitServiceBase):
                 os.path.join(self._full_base_path, '%s.yaml' % context)
             )
 
-        complex_path_regex = r'%s(.*?)\/(.*\.yaml)' % base_path_regex_prefix
+        complex_path_regex = r'%s(.*)\/(.*\.yaml)' % base_path_regex_prefix
         contexts = re.findall(complex_path_regex, pull_output)
         for context, file_path in contexts:
             if context not in context_files:
@@ -79,6 +84,21 @@ class UpdateConfigService(usb.UpdateGitServiceBase):
                 context_files[context] = [
                     os.path.join(dir_path, fname) for fname in file_list
                 ]
+
+        # single_yaml_regex_prefix = '%s\/' % self._single_yaml_path if self._single_yaml_path else ''
+        # single_yamls_path_regex = r'%s(.*)\/(.*\.yaml)' % single_yaml_regex_prefix
+        # contexts = re.findall(single_yamls_path_regex, pull_output)
+        # for context, file_path in contexts:
+        #     zk_context = self._single_yaml_path + '/' + context
+        #     if zk_context not in context_files:
+        #         dir_path = os.path.join(self._full_single_yaml_path, '%s' % context)
+        #         file_list = list(filter(
+        #             lambda filename: filename.endswith('.yaml'),
+        #             os.listdir(dir_path)
+        #         ))
+        #         context_files[zk_context] = [
+        #             os.path.join(dir_path, fname) for fname in file_list
+        #         ]
 
         return context_files
 
@@ -105,6 +125,12 @@ class UpdateConfigService(usb.UpdateGitServiceBase):
         finally:
             zk.stop()
 
+
+    def update_all_contexts(self):
+        os.chdir(self._repo_path)
+        sp.call('git pull'.split())
+        output = sp.check_output(['find', '.'])
+        self._update(output.decode())
 
 if __name__ == '__main__':
     pass

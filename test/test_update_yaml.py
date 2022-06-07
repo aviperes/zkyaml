@@ -61,6 +61,7 @@ class TestUpdateConfigService(TestCase):
                     vc/production/test.yaml
                     vc/staging/test.yaml
                     vc/global.yaml
+                    vc_yaml/production/se/single.yaml
                 """
 
             def _changed(self):
