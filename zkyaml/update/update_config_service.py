@@ -58,7 +58,8 @@ class UpdateConfigService(usb.UpdateGitServiceBase):
         return ret_val
 
     def _resolve_pull_output(self):
-        return sp.check_output('git pull'.split())
+        output = sp.check_output('git pull'.split())
+        return output.decode()
 
     def _collect_files_and_context(self, pull_output):
         context_files = {}
