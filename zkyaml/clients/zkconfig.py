@@ -4,8 +4,8 @@ import threading
 import logging.config
 from kazoo.client import KazooClient
 
-logging.basicConfig(level=logging.ERROR)
 logger = logging.getLogger()
+
 
 class AutoUpdatedConfig:
     def __init__(self,data,central_config):

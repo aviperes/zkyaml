@@ -115,6 +115,7 @@ class UpdateConfigService(usb.UpdateGitServiceBase):
         raw_data = yaml.dump(data)
         raw_path = self.get_path(context)
         zk.ensure_path(raw_path)
+        logger.info('Writing %s to %s' % (file_list, raw_path))
         res = zk.set(raw_path, raw_data.encode())
         return res
 

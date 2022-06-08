@@ -1,5 +1,4 @@
 import logging
 
-logging.basicConfig()
-
-logger = logging.getLogger()
+logger = logging.Logger('zkyaml', level=logging.INFO)
+logger.addHandler(logging.StreamHandler())
