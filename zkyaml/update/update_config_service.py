@@ -15,10 +15,12 @@ from zkyaml.common.env_variables import default_base_path, default_repo_path, de
 
 
 class UpdateConfigService(usb.UpdateGitServiceBase):
-    def __init__(self, hosts):
+    def __init__(self, hosts, zk_base_path=None):
         super(UpdateConfigService, self).__init__()
         self._hosts = hosts
-        self._base_path = default_base_path
+        if zk_base_path is None:
+            zk_base_path = default_base_path
+        self._base_path = zk_base_path
         self._logger = logger
         self._repo_path = default_repo_path
         self._repo_files_path = default_repo_files_path

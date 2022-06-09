@@ -4,7 +4,7 @@ import threading
 import logging.config
 from kazoo.client import KazooClient
 
-logger = logging.getLogger()
+from zkyaml.common import logger
 
 
 class AutoUpdatedConfig:
@@ -159,7 +159,7 @@ class ZKConfig:
             self._config = global_config
             for obserever in self._observers:
                 obserever.notify(self._config)
-            print('Zookeeper Config Fetched')
+            logger.info('Zookeeper Config Fetched from %s' % self._context_list)
         except:
             logger.exception('Zookeeper failed!')
             self._config = None
