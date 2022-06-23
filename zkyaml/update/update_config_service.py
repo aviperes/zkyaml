@@ -66,7 +66,7 @@ class UpdateConfigService(usb.UpdateGitServiceBase):
     def _collect_files_and_context(self, pull_output):
         context_files = {}
         base_path_regex_prefix = '%s\/' % self._repo_files_path if self._repo_files_path else ''
-        basic_context_regex = r'%s([^\/]+).yaml' % base_path_regex_prefix
+        basic_context_regex = r'%s([^\/]+)\.yaml' % base_path_regex_prefix
         basic_contexts = re.findall(basic_context_regex, pull_output)
         for context in basic_contexts:
             if context not in context_files:
