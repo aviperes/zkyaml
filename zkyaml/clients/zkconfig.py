@@ -87,6 +87,13 @@ class ZKUtils:
 
 class ZKConfig:
     def __init__(self, hosts, context_list, watch=True):
+        """
+        :param hosts: Zookeeper hosts
+        :param context_list: list of contexts, In case of multy context the context with the higher index
+               will override lower index context
+        :param watch: When watch is enabled all config instances will be updates when zookeeper is updated
+        """
+
         self._hosts = hosts
         self._context_list = context_list
         self._config = None

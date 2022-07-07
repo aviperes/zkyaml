@@ -25,8 +25,6 @@ class UpdateConfigService(usb.UpdateGitServiceBase):
         self._repo_path = default_repo_path
         self._repo_files_path = default_repo_files_path
         self._full_base_path = os.path.join(self._repo_path, default_repo_files_path)
-        # self._single_yaml_path = default_single_files_path
-        # self._full_single_yaml_path = os.path.join(self._repo_path, self._single_yaml_path)
 
     def update_config(self):
         self.update()
@@ -87,21 +85,6 @@ class UpdateConfigService(usb.UpdateGitServiceBase):
                 context_files[context] = [
                     os.path.join(dir_path, fname) for fname in file_list
                 ]
-
-        # single_yaml_regex_prefix = '%s\/' % self._single_yaml_path if self._single_yaml_path else ''
-        # single_yamls_path_regex = r'%s(.*)\/(.*\.yaml)' % single_yaml_regex_prefix
-        # contexts = re.findall(single_yamls_path_regex, pull_output)
-        # for context, file_path in contexts:
-        #     zk_context = self._single_yaml_path + '/' + context
-        #     if zk_context not in context_files:
-        #         dir_path = os.path.join(self._full_single_yaml_path, '%s' % context)
-        #         file_list = list(filter(
-        #             lambda filename: filename.endswith('.yaml'),
-        #             os.listdir(dir_path)
-        #         ))
-        #         context_files[zk_context] = [
-        #             os.path.join(dir_path, fname) for fname in file_list
-        #         ]
 
         return context_files
 
