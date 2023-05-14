@@ -56,6 +56,7 @@ class ZookeeperDataWatcher:
     def __init__(self, path, centeral_config):
         self._centeral_config = centeral_config
         self._path = path
+        
     def __call__(self, *args, **kwargs):
         result = True
         try:
@@ -122,6 +123,8 @@ class ZKConfig:
         self._update_on_watch = False
         for c in self._context_list:
             self._zk.ensure_path(c)
+        for c in self._context_list:
+            self._data_watchers[c] = self._zk.DataWatch(c, ZookeeperDataWatcher(c, self))
         self._update_on_watch = True
 
     def _handle_watch(self, *args, **kwargs):
