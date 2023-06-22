@@ -23,6 +23,7 @@ class UpdateConfigService(usb.UpdateGitServiceBase):
         self._base_path = zk_base_path
         self._logger = logger
         self._repo_path = default_repo_path
+        self._repo_path = '/home/gabriel/systemconfiguration'
         self._repo_files_path = default_repo_files_path
         self._full_base_path = os.path.join(self._repo_path, default_repo_files_path)
 
@@ -39,8 +40,30 @@ class UpdateConfigService(usb.UpdateGitServiceBase):
 
     # Implements abstractmethod
     def _update(self, pull_output=None):
-        if pull_output is None:
-            pull_output = self._resolve_pull_output()
+        # if pull_output is None:
+        #     pull_output = self._resolve_pull_output()
+        pull_output = '''./vc/global/crawling_profiles.yaml
+./vc/global/ptp.yaml
+./vc/global/impressions_estimation.yaml
+./vc/global/team_code_map.yaml
+./vc/global/global.yaml
+./vc/global/customers_views.yaml
+./vc/global/recommendation.yaml
+./vc/yamls/flows/production/flows.yaml
+./vc/yamls/flows/staging/flows.yaml
+./vc/yamls/flows/global.yaml
+./vc/yamls/vc_selenium/tiktok_channel.yaml
+./vc/yamls/vc_selenium/global.yaml
+./vc/yamls/graphix/staging/graphix.yaml
+./vc/jukin-prototype.yaml
+./vc/avi.yaml
+./vc/staging.yaml
+./vc/facebook-v2.yaml
+./vc/download_and_hash_system_test.yaml
+./vc/crawlers.yaml
+./vc/production.yaml
+./vc/Test.yaml
+./vc/inspector.yaml'''
         context_files = self._collect_files_and_context(pull_output)
         if not context_files:
             self._logger.warning('changes were not in context files')
@@ -48,6 +71,8 @@ class UpdateConfigService(usb.UpdateGitServiceBase):
 
         ret_val = True
         for context, file_list in context_files.items():
+            # if context != 'staging':
+            #     continue
             try:
                 self.update_context(context, file_list)
                 self._logger.info('updated zookeeper for context: %s' % context)
@@ -114,10 +139,11 @@ class UpdateConfigService(usb.UpdateGitServiceBase):
 
 
     def update_all_contexts(self):
-        os.chdir(self._repo_path)
-        sp.call('git pull'.split())
-        output = sp.check_output(['find', '.'])
-        self._update(output.decode())
+        # os.chdir(self._repo_path)
+        # sp.call('git pull'.split())
+        # output = sp.check_output(['find', '.'])
+        # self._update(output.decode())
+        self._update(None)
 
 if __name__ == '__main__':
     pass
