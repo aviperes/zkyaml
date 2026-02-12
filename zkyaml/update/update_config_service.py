@@ -72,10 +72,25 @@ class UpdateConfigService(usb.UpdateGitServiceBase):
             context_files[context].append(
                 os.path.join(self._full_base_path, '%s.yaml' % context)
             )
+            # Merge env_extension/*.yaml into production/staging (same ZK node)
+            if context in ('production', 'staging'):
+                env_extension_dir = os.path.join(self._full_base_path, context, 'env_extension')
+                if os.path.isdir(env_extension_dir):
+                    ext_files = sorted(
+                        f for f in os.listdir(env_extension_dir)
+                        if f.endswith('.yaml')
+                    )
+                    for fname in ext_files:
+                        context_files[context].append(
+                            os.path.join(env_extension_dir, fname)
+                        )
 
         complex_path_regex = r'%s(.*)\/(.*\.yaml)' % base_path_regex_prefix
         contexts = re.findall(complex_path_regex, pull_output)
         for context, file_path in contexts:
+            # Do not push env_extension as a separate ZK context
+            if context.endswith('/env_extension') or context == 'env_extension':
+                continue
             if context not in context_files:
                 dir_path = os.path.join(self._full_base_path, '%s' % context)
                 file_list = list(filter(
