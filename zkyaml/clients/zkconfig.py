@@ -3,7 +3,7 @@ import logging
 import threading
 import logging.config
 from kazoo.client import KazooClient
-
+import retrying as retrying
 from zkyaml.common import logger
 
 
@@ -18,16 +18,22 @@ class AutoUpdatedConfig:
 
     def check_update(self):
         try:
-            if self._need_to_update:
-                self.update(self._central_config._get_config_dict())
+            if self._need_to_update or self._data is None:
+                if self.update(self._central_config._get_config_dict()):
+                    self._need_to_update = False
         except:
             pass
 
     def update(self, config):
-        if isinstance(config, dict):
-            return self._data.update(config)
-        elif isinstance(config, AutoUpdatedConfig):
-            return self._data.update(config._data)
+        if isinstance(config, AutoUpdatedConfig):
+            config = config._data
+        if not isinstance(config, dict):
+            return False
+        if self._data is None:
+            self._data = dict(config)
+        else:
+            self._data.update(config)
+        return True
 
     def get(self, key, default=None):
         self.check_update()
@@ -105,9 +111,13 @@ class ZKConfig:
         self._zk = KazooClient(self._hosts)
         self._zk.start()
 
-        # Fetch config for the first time.
-        with self._fetch_config_lock:
-            self._get_config()
+        # Fetch config for the first time; retry to ride out transient ZK blips
+        # and fail fast instead of running with no config.
+        try:
+            self._fetch_config_with_retry()
+        except:
+            self._zk.stop()
+            raise
 
         self._data_watchers = {}
         self._watch_callback_runinng = False
@@ -145,9 +155,17 @@ class ZKConfig:
             print(('Zookeeper: Error Fetching Config Thread: %s'% e))
 
     def get_config(self):
+        if self._config is None:
+            self._fetch_config_with_retry()
         auto_updated_config = AutoUpdatedConfig(self._config,self)
         self._observers.append(auto_updated_config)
         return auto_updated_config
+
+    @retrying.retry(stop_max_attempt_number=3, wait_fixed=2000, retry_on_exception=lambda e: True)
+    def _fetch_config_with_retry(self):
+        with self._fetch_config_lock:
+            if self._config is None:
+                self._get_config()
 
     def _get_config_dict(self):
         return self._config
@@ -155,6 +173,8 @@ class ZKConfig:
     def _get_config(self):
         """
         load config from zookeeper
+        On failure keeps the last known good config; raises only when there is
+        no previous config to fall back to.
         :return: dict
         """
         try:
@@ -165,6 +185,8 @@ class ZKConfig:
                 context_config = yaml.load(context_config_yaml, Loader=yaml.FullLoader)
                 if context_config:
                     global_config.update(context_config)
+            if not global_config:
+                raise ValueError('Fetched empty config from %s' % self._context_list)
             # context config overrides the global config
             self._config = global_config
             for obserever in self._observers:
@@ -172,4 +194,5 @@ class ZKConfig:
             logger.info('Zookeeper Config Fetched from %s' % self._context_list)
         except:
             logger.exception('Zookeeper failed!')
-            self._config = None
+            if self._config is None:
+                raise
